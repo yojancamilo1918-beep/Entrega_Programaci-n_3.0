@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pandas DataFrames · Análisis de Datos con Python</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #0f0f1a;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            color: #e94560;
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #a0a0c0;
+            font-size: 0.9rem;
+        }
+
+        .tabs {
+            display: flex;
+            background: #0a0a12;
+            border-bottom: 1px solid #2a2a3e;
+            padding: 0 20px;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 16px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #8888aa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 12px 12px 0 0;
+            position: relative;
+        }
+
+        .tab-btn:hover {
+            color: #e94560;
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .tab-btn.active {
+            color: #e94560;
+            background: #0f0f1a;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e94560;
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 32px;
+            background: #0f0f1a;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .data-card {
+            background: #1a1a2e;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid #2a2a3e;
+            overflow-x: auto;
+        }
+
+        .data-card h3 {
+            color: #e94560;
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-left: 4px solid #e94560;
+            padding-left: 16px;
+        }
+
+        .data-card h3 .badge {
+            background: #e94560;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            background: #0f0f1a;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .data-table th {
+            background: #e94560;
+            color: white;
+            padding: 12px 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .data-table td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #2a2a3e;
+            color: #c0c0e0;
+        }
+
+        .data-table tr:hover {
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .result-box {
+            background: #0a0a12;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-top: 16px;
+            border-left: 4px solid #e94560;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #a0a0c0;
+        }
+
+        .result-box strong {
+            color: #e94560;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .result-item {
+            background: #12121f;
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid #2a2a3e;
+        }
+
+        .result-item h4 {
+            color: #e94560;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+
+        .result-item pre {
+            background: #0a0a12;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.75rem;
+            color: #88d4ff;
+        }
+
+        /* Estilos para el código fuente */
+        .code-container {
+            background: #0a0a12;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 24px;
+            border: 1px solid #2a2a3e;
+        }
+
+        .code-header {
+            background: #1a1a2e;
+            padding: 12px 20px;
+            border-bottom: 1px solid #2a2a3e;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .code-header h4 {
+            color: #e94560;
+            font-size: 1rem;
+        }
+
+        .code-header .lang {
+            background: #e94560;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+        }
+
+        pre {
+            background: #0a0a12;
+            padding: 20px;
+            overflow-x: auto;
+            font-family: 'Courier New', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            color: #c0c0e0;
+            margin: 0;
+        }
+
+        .keyword { color: #e94560; font-weight: bold; }
+        .string { color: #88d4ff; }
+        .number { color: #ffd966; }
+        .comment { color: #6a9955; font-style: italic; }
+        .function { color: #dcdcaa; }
+        .operator { color: #d4d4d4; }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a2e;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #e94560;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .tabs { padding: 0 10px; }
+            .tab-btn { padding: 12px 16px; font-size: 0.85rem; }
+            .tab-content { padding: 20px; }
+            .data-table { font-size: 0.7rem; }
+            .data-table th, .data-table td { padding: 6px 4px; }
+        }
+
+        .note {
+            background: rgba(233, 69, 96, 0.15);
+            border-radius: 12px;
+            padding: 12px 20px;
+            margin-top: 24px;
+            font-size: 0.8rem;
+            color: #8888aa;
+            text-align: center;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>🐼 Pandas DataFrame Analyzer</h1>
+            <p>Análisis de datos con Python (pandas) · Operaciones, filtros y transformaciones</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="tab1">📊 Código 1 · Productos</button>
+            <button class="tab-btn" data-tab="tab2">👥 Código 2 · Vendedores</button>
+            <button class="tab-btn" data-tab="tab3">📝 Código Fuente</button>
+        </div>
+
+        <!-- PÁGINA 1: CÓDIGO 1 - PRODUCTOS -->
+        <div id="tab1" class="tab-content active">
+            <div class="data-card">
+                <h3>📦 DataFrame Original · Productos</h3>
+                <div id="df1-original"></div>
+            </div>
+
+            <div class="data-card">
+                <h3>💰 Operación: Ingreso = Precio × Cantidad</h3>
+                <div id="df1-ingreso"></div>
+            </div>
+
+            <div class="data-card">
+                <h3>🏷️ Descuentos · Monto_Desc y Precio_Final</h3>
+                <div id="df1-descuento"></div>
+            </div>
+
+            <div class="data-card">
+                <h3>📈 Precio Promedio = Ingreso / Cantidad</h3>
+                <div id="df1-promedio"></div>
+            </div>
+
+            <div class="data-card">
+                <h3>🧮 Aplicación con .apply() · Ingreso_Neto</h3>
+                <div id="df1-apply"></div>
+            </div>
+
+            <div class="data-card">
+                <h3>💵 Cálculo Final · Ingreso_Neto + IVA (16%)</h3>
+                <div id="df1-final"></div>
+            </div>
+
+            <div class="note">
+                ⚡ DataFrame procesado con pandas: Suma de Precios, Ingresos, Descuentos, Precio Promedio, Ingreso Neto con apply, IVA y Total.
+            </div>
+        </div>
+
+        <!-- PÁGINA 2: CÓDIGO 2 - VENDEDORES -->
+        <div id="tab2" class="tab-content">
+            <div class="data-card">
+                <h3>👥 DataFrame Original · Vendedores</h3>
+                <div id="df2-original"></div>
+            </div>
+
+            <div class="data-card">
+                <h3>🎯 Filtros Simples · Ventas vs Umbrales</h3>
+                <div class="results-grid">
+                    <div class="result-item">
+                        <h4>📈 Ventas > 100</h4>
+                        <div id="filtro-ventas-mayor-100"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>🎯 Ventas ≥ 120</h4>
+                        <div id="filtro-ventas-mayor-120"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>💰 Gasto < 45</h4>
+                        <div id="filtro-gasto-menor-45"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>📦 Devoluciones ≤ 5</h4>
+                        <div id="filtro-devoluciones-menor-5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-card">
+                <h3>⚖️ Comparación con Meta y Límite</h3>
+                <div class="results-grid">
+                    <div class="result-item">
+                        <h4>🏆 Ventas que superan la Meta</h4>
+                        <div id="filtro-superan-meta"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>⚠️ Ventas que NO alcanzan la Meta</h4>
+                        <div id="filtro-no-alcanzan-meta"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>✅ Gastos dentro del Límite</h4>
+                        <div id="filtro-gastos-dentro-limite"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>❌ Gastos que exceden el Límite</h4>
+                        <div id="filtro-gastos-exceden-limite"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-card">
+                <h3>📊 Rangos · Ventas</h3>
+                <div class="results-grid">
+                    <div class="result-item">
+                        <h4>🔒 Rango cerrado [100, 150]</h4>
+                        <div id="rango-cerrado"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>🔄 Rango abierto (100, 150)</h4>
+                        <div id="rango-abierto"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>📌 Rango semi-abierto [100, 150)</h4>
+                        <div id="rango-semi-abierto1"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>📌 Rango semi-abierto (100, 150]</h4>
+                        <div id="rango-semi-abierto2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-card">
+                <h3>🔀 Filtros Combinados (OR / NOT)</h3>
+                <div class="results-grid">
+                    <div class="result-item">
+                        <h4>📉 Valores extremos (Ventas < 80 o > 170)</h4>
+                        <div id="filtro-extremos"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>🚫 Negación de rango con ~</h4>
+                        <div id="filtro-negacion"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>⚡ Múltiples umbrales (OR)</h4>
+                        <div id="filtro-multiples-umbrales"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-card">
+                <h3>🧠 Desigualdades Encadenadas</h3>
+                <div class="results-grid">
+                    <div class="result-item">
+                        <h4>📋 Ventas ≥ 100, Gasto < 50, Devol ≤ 5</h4>
+                        <div id="filtro-encadenado"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>📊 Diferencia Ventas - Meta > 20</h4>
+                        <div id="filtro-diferencia"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>📈 Ratio Ventas/Meta ≥ 1.2</h4>
+                        <div id="filtro-ratio"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>💸 Producto Ventas × Comisión > 15</h4>
+                        <div id="filtro-producto"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-card">
+                <h3>🔍 Query() · Consultas estilo SQL</h3>
+                <div class="results-grid">
+                    <div class="result-item">
+                        <h4>📋 query("Ventas > 100")</h4>
+                        <div id="query-ventas"></div>
+                    </div>
+                    <div class="result-item">
+                        <h4>📋 query("100 <= Ventas <= 150")</h4>
+                        <div id="query-rango"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="note">
+                ⚡ DataFrame filtrado con múltiples condiciones: comparación con Meta, Límite, rangos, operadores lógicos (&, |, ~), query() y operaciones entre columnas.
+            </div>
+        </div>
+
+        <!-- PÁGINA 3: CÓDIGO FUENTE -->
+        <div id="tab3" class="tab-content">
+            <div class="code-container">
+                <div class="code-header">
+                    <h4>📄 Código 1 · Análisis de Productos</h4>
+                    <span class="lang">Python · pandas</span>
+                </div>
+                <pre id="codigo1-source"></pre>
+            </div>
+
+            <div class="code-container">
+                <div class="code-header">
+                    <h4>📄 Código 2 · Análisis de Vendedores</h4>
+                    <span class="lang">Python · pandas</span>
+                </div>
+                <pre id="codigo2-source"></pre>
+            </div>
+
+            <div class="note">
+                💡 Los códigos mostrados arriba son los scripts originales de Python con pandas que se ejecutaron para generar los resultados de las páginas 1 y 2.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== CÓDIGO FUENTE (para mostrar) ====================
+        const codigo1 = `import pandas as pd
+import numpy as np
+
+df = pd.DataFrame({
+    "Producto": ["Laptop", "Mouse", "Teclado", "Monitor"],
+    "Precio": [15000, 350, 800, 5200],
+    "Cantidad": [10, 150, 80, 25],
+    "Descuento": [0.10, 0.05, 0.08, 0.012]
+})
+
+print(df)
+
+df["Ingreso"] = df["Precio"] * df["Cantidad"]
+print(df)
+
+df["Precio"].sum()
+
+df["Monto_Desc"] = df["Precio"] * df["Descuento"]
+df["Precio_Final"] = df["Precio"] - df["Monto_Desc"]
+print(df)
+
+df["Ingreso"] = df["Precio"] * df["Cantidad"]
+print(df)
+
+df["Ingreso"] = df["Precio"] * df["Cantidad"]
+df["Precio_Prom"] = df["Ingreso"] / df["Cantidad"]
+print(df)
+
+df[["Precio","Cantidad"]].mean(axis=1)
+print(df)
+
+df["Ingreso_Neto"] = df.apply(lambda r: r["Precio"] * r["Cantidad"] * (1 - r["Descuento"]), axis=1)
+print(df)
+
+df["ingreso"] = df["Precio"] * df["Cantidad"]
+df["Desc-Monto"] = df["Ingreso"] * df["Descuento"]
+df["Ingreso_Neto"] = df["Ingreso"] - df["Desc-Monto"]
+df["IVA"] = df["Ingreso_Neto"] * 0.16
+df["Total"] = df["Ingreso_Neto"] + df["IVA"]
+print(df)`;
+
+        const codigo2 = `import pandas as pd
+import numpy as np
+
+df = pd.DataFrame({
+    "Vendedor": ["Ana", "Luis", "María", "Carlos", "Sofía", "Pedro", "Laura", "Diego"],
+    "Meta": [120, 100, 150, 120, 130, 80, 160, 100],
+    "Ventas": [110, 95, 155, 118, 128, 85, 162, 98],
+    "Gasto": [40, 30, 70, 55, 45, 35, 65, 50],
+    "Limite": [50, 40, 80, 50, 60, 40, 70, 55],
+    "Devol": [5, 12, 3, 8, 2, 15, 4, 10],
+    "Comision": [0.10, 0.08, 0.12, 0.09, 0.11, 0.07, 0.12, 0.10]
+})
+
+print(df)
+
+# Ventas estrictamente mayor a 100
+df[df["Ventas"] > 100]
+
+# Ventas mayor o igual a 120
+df[df["Ventas"] >= 120]
+
+# Gasto estrictamente menor a 45
+df[df["Gasto"] < 45]
+
+# Devoluciones menor o igual a 5
+df[df["Devol"] <= 5]
+
+# Ventas que superan la meta
+df[df["Ventas"] > df["Meta"]]
+
+# Ventas que NO alcanzan la meta
+df[df["Ventas"] <= df["Meta"]]
+
+# Gastos dentro del límite
+df[df["Gasto"] <= df["Limite"]]
+
+# Gastos que exceden el límite
+df[df["Gasto"] > df["Limite"]]
+
+# Rango cerrado [100, 150]
+df[(df["Ventas"] >= 100) & (df["Ventas"] <= 150)]
+
+# Rango abierto (100, 150)
+df[(df["Ventas"] > 100) & (df["Ventas"] < 150)]
+
+# Rango semi-abierto [100, 150)
+df[(df["Ventas"] >= 100) & (df["Ventas"] < 150)]
+
+# Rango semi-abierto (100, 150]
+df[(df["Ventas"] > 100) & (df["Ventas"] <= 150)]
+
+# Fuera de Rango - Valores extremos
+df[(df["Ventas"] < 80) | (df["Ventas"] > 170)]
+
+# Equivale a negar el rango
+~df["Ventas"].between(80, 170)
+
+# Múltiples umbrales con OR
+df[(df["Ventas"] > 150) | (df["Gasto"] > 50) | (df["Devol"] > 10)]
+
+# Desigualdades encadenadas
+df[(df["Ventas"] >= 100) & (df["Gasto"] < 50) & (df["Devol"] <= 5)]
+
+# Diferencia > Umbral
+df[(df["Ventas"] - df["Meta"]) > 20]
+
+# Ratio entre columnas
+df[df["Ventas"] / df["Meta"] >= 1.2]
+
+# Producto > Umbral
+df[df["Ventas"] * df["Comision"] > 15]
+
+# % de Gasto < Límite
+df[df["Gasto"] / df["Ventas"] < 0.34]
+
+# Desigualdades con query()
+df.query("Ventas > 100")
+df.query("100 <= Ventas <= 150")`;
+
+        // Mostrar código fuente con formato básico
+        function displayCode(code, elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = code;
+            }
+        }
+
+        displayCode(codigo1, 'codigo1-source');
+        displayCode(codigo2, 'codigo2-source');
+
+        // ==================== CÓDIGO 1 - DATOS ====================
+        const productosData = [
+            { Producto: "Laptop", Precio: 15000, Cantidad: 10, Descuento: 0.10 },
+            { Producto: "Mouse", Precio: 350, Cantidad: 150, Descuento: 0.05 },
+            { Producto: "Teclado", Precio: 800, Cantidad: 80, Descuento: 0.08 },
+            { Producto: "Monitor", Precio: 5200, Cantidad: 25, Descuento: 0.012 }
+        ];
+
+        function renderTable(data, columns) {
+            if (!data || data.length === 0) {
+                return '<div style="padding: 20px; text-align: center; color: #888;">Sin resultados</div>';
+            }
+            let html = '<table class="data-table"><thead><tr>';
+            columns.forEach(col => { html += `<th>${col}</th>`; });
+            html += '</tr></thead><tbody>';
+            data.forEach(row => {
+                html += '<tr>';
+                columns.forEach(col => {
+                    let value = row[col];
+                    if (typeof value === 'number') value = value.toFixed(2);
+                    html += `<td>${value !== undefined ? value : '-'}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            return html;
+        }
+
+        // Procesar Código 1
+        let df1 = [...productosData];
+        let df1ConIngreso = df1.map(row => ({ ...row, Ingreso: row.Precio * row.Cantidad }));
+        const precioSum = df1.reduce((sum, row) => sum + row.Precio, 0);
+        let df1ConDescuento = df1ConIngreso.map(row => ({ ...row, Monto_Desc: row.Precio * row.Descuento, Precio_Final: row.Precio - (row.Precio * row.Descuento) }));
+        let df1ConPromedio = df1ConDescuento.map(row => ({ ...row, Precio_Prom: row.Ingreso / row.Cantidad }));
+        let df1ConApply = df1ConPromedio.map(row => ({ ...row, Ingreso_Neto: row.Precio * row.Cantidad * (1 - row.Descuento) }));
+        let df1Final = df1ConApply.map(row => {
+            const ingresoNeto = row.Ingreso_Neto;
+            const iva = ingresoNeto * 0.16;
+            return { ...row, "Desc-Monto": row.Ingreso * row.Descuento, IVA: iva, Total: ingresoNeto + iva };
+        });
+
+        document.getElementById('df1-original').innerHTML = renderTable(df1, ['Producto', 'Precio', 'Cantidad', 'Descuento']);
+        document.getElementById('df1-ingreso').innerHTML = renderTable(df1ConIngreso, ['Producto', 'Precio', 'Cantidad', 'Descuento', 'Ingreso']) + `<div class="result-box"><strong>📊 Suma de Precios:</strong> $${precioSum.toFixed(2)}</div>`;
+        document.getElementById('df1-descuento').innerHTML = renderTable(df1ConDescuento, ['Producto', 'Precio', 'Cantidad', 'Descuento', 'Ingreso', 'Monto_Desc', 'Precio_Final']);
+        document.getElementById('df1-promedio').innerHTML = renderTable(df1ConPromedio, ['Producto', 'Precio', 'Cantidad', 'Descuento', 'Ingreso', 'Precio_Prom']);
+        document.getElementById('df1-apply').innerHTML = renderTable(df1ConApply, ['Producto', 'Precio', 'Cantidad', 'Descuento', 'Ingreso', 'Ingreso_Neto']);
+        document.getElementById('df1-final').innerHTML = renderTable(df1Final, ['Producto', 'Precio', 'Cantidad', 'Descuento', 'Ingreso', 'Monto_Desc', 'Precio_Final', 'Ingreso_Neto', 'Desc-Monto', 'IVA', 'Total']);
+
+        // ==================== CÓDIGO 2 - DATOS ====================
+        const vendedoresData = [
+            { Vendedor: "Ana", Meta: 120, Ventas: 110, Gasto: 40, Limite: 50, Devol: 5, Comision: 0.10 },
+            { Vendedor: "Luis", Meta: 100, Ventas: 95, Gasto: 30, Limite: 40, Devol: 12, Comision: 0.08 },
+            { Vendedor: "María", Meta: 150, Ventas: 155, Gasto: 70, Limite: 80, Devol: 3, Comision: 0.12 },
+            { Vendedor: "Carlos", Meta: 120, Ventas: 118, Gasto: 55, Limite: 50, Devol: 8, Comision: 0.09 },
+            { Vendedor: "Sofía", Meta: 130, Ventas: 128, Gasto: 45, Limite: 60, Devol: 2, Comision: 0.11 },
+            { Vendedor: "Pedro", Meta: 80, Ventas: 85, Gasto: 35, Limite: 40, Devol: 15, Comision: 0.07 },
+            { Vendedor: "Laura", Meta: 160, Ventas: 162, Gasto: 65, Limite: 70, Devol: 4, Comision: 0.12 },
+            { Vendedor: "Diego", Meta: 100, Ventas: 98, Gasto: 50, Limite: 55, Devol: 10, Comision: 0.10 }
+        ];
+
+        function filterData(condition) { return vendedoresData.filter(condition); }
+
+        document.getElementById('df2-original').innerHTML = renderTable(vendedoresData, ['Vendedor', 'Meta', 'Ventas', 'Gasto', 'Limite', 'Devol', 'Comision']);
+        document.getElementById('filtro-ventas-mayor-100').innerHTML = renderTable(filterData(r => r.Ventas > 100), ['Vendedor', 'Ventas']);
+        document.getElementById('filtro-ventas-mayor-120').innerHTML = renderTable(filterData(r => r.Ventas >= 120), ['Vendedor', 'Ventas']);
+        document.getElementById('filtro-gasto-menor-45').innerHTML = renderTable(filterData(r => r.Gasto < 45), ['Vendedor', 'Gasto']);
+        document.getElementById('filtro-devoluciones-menor-5').innerHTML = renderTable(filterData(r => r.Devol <= 5), ['Vendedor', 'Devol']);
+        document.getElementById('filtro-superan-meta').innerHTML = renderTable(filterData(r => r.Ventas > r.Meta), ['Vendedor', 'Ventas', 'Meta']);
+        document.getElementById('filtro-no-alcanzan-meta').innerHTML = renderTable(filterData(r => r.Ventas <= r.Meta), ['Vendedor', 'Ventas', 'Meta']);
+        document.getElementById('filtro-gastos-dentro-limite').innerHTML = renderTable(filterData(r => r.Gasto <= r.Limite), ['Vendedor', 'Gasto', 'Limite']);
+        document.getElementById('filtro-gastos-exceden-limite').innerHTML = renderTable(filterData(r => r.Gasto > r.Limite), ['Vendedor', 'Gasto', 'Limite']);
+        document.getElementById('rango-cerrado').innerHTML = renderTable(filterData(r => r.Ventas >= 100 && r.Ventas <= 150), ['Vendedor', 'Ventas']);
+        document.getElementById('rango-abierto').innerHTML = renderTable(filterData(r => r.Ventas > 100 && r.Ventas < 150), ['Vendedor', 'Ventas']);
+        document.getElementById('rango-semi-abierto1').innerHTML = renderTable(filterData(r => r.Ventas >= 100 && r.Ventas < 150), ['Vendedor', 'Ventas']);
+        document.getElementById('rango-semi-abierto2').innerHTML = renderTable(filterData(r => r.Ventas > 100 && r.Ventas <= 150), ['Vendedor', 'Ventas']);
+        document.getElementById('filtro-extremos').innerHTML = renderTable(filterData(r => r.Ventas < 80 || r.Ventas > 170), ['Vendedor', 'Ventas']);
+        document.getElementById('filtro-negacion').innerHTML = renderTable(filterData(r => !(r.Ventas >= 80 && r.Ventas <= 170)), ['Vendedor', 'Ventas']);
+        document.getElementById('filtro-multiples-umbrales').innerHTML = renderTable(filterData(r => r.Ventas > 150 || r.Gasto > 50 || r.Devol > 10), ['Vendedor', 'Ventas', 'Gasto', 'Devol']);
+        document.getElementById('filtro-encadenado').innerHTML = renderTable(filterData(r => r.Ventas >= 100 && r.Gasto < 50 && r.Devol <= 5), ['Vendedor', 'Ventas', 'Gasto', 'Devol']);
+        document.getElementById('filtro-diferencia').innerHTML = renderTable(filterData(r => (r.Ventas - r.Meta) > 20), ['Vendedor', 'Ventas', 'Meta']);
+        document.getElementById('filtro-ratio').innerHTML = renderTable(filterData(r => r.Ventas / r.Meta >= 1.2), ['Vendedor', 'Ventas', 'Meta']);
+        document.getElementById('filtro-producto').innerHTML = renderTable(filterData(r => r.Ventas * r.Comision > 15), ['Vendedor', 'Ventas', 'Comision']);
+        document.getElementById('query-ventas').innerHTML = renderTable(filterData(r => r.Ventas > 100), ['Vendedor', 'Ventas']);
+        document.getElementById('query-rango').innerHTML = renderTable(filterData(r => r.Ventas >= 100 && r.Ventas <= 150), ['Vendedor', 'Ventas']);
+
+        // ==================== SISTEMA DE PESTAÑAS ====================
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
